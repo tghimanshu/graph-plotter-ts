@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ascending Audiology</title>
+    <style>
+      .graph-container {
+        position: relative;
+      }
+      #graph {
+        position: absolute;
+        top: 10px;
+        left: 51px;
+        background-color: white;
+        cursor: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="graph-container">
+      <img src="graph_axis.png" alt="graph axis" id="graph-img" />
+      <canvas id="graph" width="379px" , height="379px"></canvas>
+    </div>
+    <div class="assets"></div>
+    <script src="script.js"></script>
+  </body>
+</html>
