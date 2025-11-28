@@ -1,3 +1,6 @@
+/**
+ * Represents a graph grid on a canvas.
+ */
 class Graph {
   graph: HTMLCanvasElement;
   X: number;
@@ -6,6 +9,15 @@ class Graph {
   YGRID: number;
   ctx: CanvasRenderingContext2D;
 
+  /**
+   * Creates a new Graph instance.
+   * @param config - Configuration object.
+   * @param config.graph - The canvas element.
+   * @param config.X - The width of the graph (default: 378).
+   * @param config.Y - The height of the graph (default: 378).
+   * @param config.GRID - Horizontal grid spacing (default: 27).
+   * @param config.YGRID - Vertical grid spacing (default: 13.5).
+   */
   constructor(config: {
     graph: HTMLCanvasElement;
     X?: number;
@@ -23,6 +35,9 @@ class Graph {
     this.graph = config.graph;
     this.ctx = this.graph.getContext("2d") as CanvasRenderingContext2D;
   }
+  /**
+   * Draws the graph grid lines.
+   */
   drawGraph() {
     for (let i = 0; i <= this.Y + this.GRID; i += this.GRID) {
       this.ctx.moveTo(0, i);
@@ -59,10 +74,16 @@ class Graph {
       }
     }
   }
+  /**
+   * Initializes the graph by drawing it.
+   */
   init() {
     this.drawGraph();
   }
 
+  /**
+   * Clears the entire canvas.
+   */
   clearRect() {
     this.ctx.clearRect(0, 0, this.X, this.Y);
   }

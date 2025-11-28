@@ -1,3 +1,15 @@
+"""
+Audiology Case Management System.
+
+This module provides a Tkinter-based graphical user interface for managing audiology cases.
+It allows users to:
+- Create new patient cases.
+- Open and edit existing cases.
+- Plot audiograms (left and right ears) using an interactive canvas.
+- Store case data in a SQLite database.
+- Generate reports/PDFs via HTML templates and Selenium.
+- Export data to CSV.
+"""
 # make case no custom - create exe and install by tomm 4pm
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -55,14 +67,40 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS cases (
 
 
 def MainWindow(opened=False, openedData={}):
+    """
+    Initializes and launches the main application window.
+
+    This function serves as the entry point for the application UI. It sets up the
+    main Tkinter window, initializes the database connection (global), defines
+    event handlers, and builds the entire widget hierarchy.
+
+    Args:
+        opened (bool, optional): Flag indicating if the window is opening an existing case.
+                                 Defaults to False.
+        openedData (dict or ttk.Treeview Item, optional): Data for the case being opened.
+                                                          Defaults to {}.
+
+    Returns:
+        None
+    """
     # global Y
     
     # Function for Open Dialog
     def newCase():
+        """
+        Resets the application to a new case state.
+
+        Destroys the current root window and re-initializes MainWindow.
+        """
         root.destroy()
         MainWindow()
 
     def openACase():
+        """
+        Opens a dialog to search and select an existing case from the database.
+
+        Creates a new Toplevel window displaying a Treeview of cases.
+        """
         new_win = Toplevel()
         cursor.execute('SELECT * FROM cases')
         res = cursor.fetchall()
@@ -70,6 +108,14 @@ def MainWindow(opened=False, openedData={}):
         tv.pack()
         # sort
         def treeview_sort_column(tv, col, reverse):
+            """
+            Sorts the Treeview column.
+
+            Args:
+                tv (ttk.Treeview): The Treeview widget.
+                col (str): The column identifier to sort by.
+                reverse (bool): Whether to sort in descending order.
+            """
             l = [(tv.set(k, col), k) for k in tv.get_children('')]
             l.sort(reverse=reverse)
 
@@ -92,6 +138,9 @@ def MainWindow(opened=False, openedData={}):
             tv.insert('', 'end', values=(r[0], r[1], r[5]))
 
         def open_the_data():
+            """
+            Loads the selected case data and re-opens the Main Window with it.
+            """
             itemIndex = tv.focus()
             if itemIndex == '':
                 messagebox.showerror(title="Open Error", message="No Case Seelected!")
@@ -121,6 +170,11 @@ def MainWindow(opened=False, openedData={}):
     root.title("Ascending Audiology")
     
     def export():
+        """
+        Exports the entire cases database to a CSV file.
+
+        The 'graphs' column is dropped before export.
+        """
         db_df = pd.read_sql_query("SELECT * FROM cases", conn)
         db_df = db_df.drop('graphs', axis=1)
         db_df.to_csv('database.csv', index=False)
@@ -153,6 +207,12 @@ def MainWindow(opened=False, openedData={}):
     my_canvas.configure(yscrollcommand=my_scrollbar)
     my_canvas.bind('<Configure>', lambda e: my_canvas.configure(scrollregion=my_canvas.bbox('all')))
     def on_mousewheel(event):
+        """
+        Handles mouse wheel scrolling for the canvas.
+
+        Args:
+            event: The Tkinter event object.
+        """
         my_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
     my_canvas.bind_all("<MouseWheel>", on_mousewheel)
 
@@ -319,25 +379,69 @@ def MainWindow(opened=False, openedData={}):
 
 
     def le_get_oval_centre(coords):
+        """
+        Calculates the center of an oval on the Left Ear graph.
+
+        Args:
+            coords (list): A list of coordinates [x1, y1, x2, y2].
+
+        Returns:
+            list: The [x, y] coordinates of the center.
+        """
         x = (coords[0] + coords[2])//2
         y = (coords[1] + coords[3])//2
         return [x, y]
 
     def re_get_oval_centre(coords):
+        """
+        Calculates the center of an oval on the Right Ear graph.
+
+        Args:
+            coords (list): A list of coordinates [x1, y1, x2, y2].
+
+        Returns:
+            list: The [x, y] coordinates of the center.
+        """
         x = (coords[0] + coords[2])//2
         y = (coords[1] + coords[3])//2
         return [x, y]
 
 
     def le_set_oval_coords(t, xy):
+        """
+        Sets the coordinates for an oval on the Left Ear graph.
+
+        Args:
+            t: The canvas item tag or ID.
+            xy (list): The new center [x, y] coordinates.
+        """
         x, y = xy
         c.coords(t, (x - 5, y - 5, x + 5, y + 5))
 
     def re_set_oval_coords(t, xy):
+        """
+        Sets the coordinates for an oval on the Right Ear graph.
+
+        Args:
+            t: The canvas item tag or ID.
+            xy (list): The new center [x, y] coordinates.
+        """
         x, y = xy
         c2.coords(t, (x - 5, y - 5, x + 5, y + 5))
 
     def le_check_y_for_same(arg, x_chord, y_chord):
+        """
+        Checks if a point already exists at the given X coordinate for the Left Ear graph
+        and removes it if found.
+
+        Args:
+            arg (str): The key in the 'points' dictionary (symbol type).
+            x_chord (int): The x-coordinate to check.
+            y_chord (int): The y-coordinate (unused in logic but passed).
+
+        Returns:
+            bool: True if a point was found and removed, False otherwise.
+        """
         exists_any = False
         temp_items = []
         for item in points[arg]:
@@ -354,6 +458,18 @@ def MainWindow(opened=False, openedData={}):
         return exists_any
 
     def re_check_y_for_same(arg, x_chord, y_chord):
+        """
+        Checks if a point already exists at the given X coordinate for the Right Ear graph
+        and removes it if found.
+
+        Args:
+            arg (str): The key in the 'points' dictionary (symbol type).
+            x_chord (int): The x-coordinate to check.
+            y_chord (int): The y-coordinate (unused in logic but passed).
+
+        Returns:
+            bool: True if a point was found and removed, False otherwise.
+        """
         exists_any = False
         temp_items = []
         for item in points[arg]:
@@ -370,6 +486,12 @@ def MainWindow(opened=False, openedData={}):
         return exists_any
 
     def le_remove_points(e):
+        """
+        Removes a point from the Left Ear graph based on the current cursor position.
+
+        Args:
+            e: The event object (unused, uses canvas state).
+        """
         # ex = e.x
         # ey = e.y
         t = c.find_withtag('le_point')
@@ -386,6 +508,12 @@ def MainWindow(opened=False, openedData={}):
         le_create_graph_lines()
 
     def re_remove_points(e):
+        """
+        Removes a point from the Right Ear graph based on the current cursor position.
+
+        Args:
+            e: The event object (unused, uses canvas state).
+        """
         # ex = e.x
         # ey = e.y
         t = c2.find_withtag('re_point')
@@ -402,6 +530,14 @@ def MainWindow(opened=False, openedData={}):
         re_create_graph_lines()
 
     def le_filter_points():
+        """
+        Filters and sorts points for the Left Ear graph to prepare for line drawing.
+
+        Combines various point types (circles, triangles, etc.) and handles masking logic.
+
+        Returns:
+            dict: A dictionary of filtered and sorted points.
+        """
         temp_points = {
             'red_circle': points['red_circle']+points['red_circle_nr']+points['red_triangle']+points['red_triangle_nr'],
             'blue_X': points['blue_X']+points['blue_X_nr']+points['blue_square']+points['blue_square_nr'],
@@ -430,6 +566,14 @@ def MainWindow(opened=False, openedData={}):
                     new_temp_points[arg].append(a)
         return new_temp_points
     def re_filter_points():
+        """
+        Filters and sorts points for the Right Ear graph to prepare for line drawing.
+
+        Combines various point types and handles masking logic.
+
+        Returns:
+            dict: A dictionary of filtered and sorted points.
+        """
         temp_points = {
             'red_circle': points['red_circle']+points['red_circle_nr']+points['red_triangle']+points['red_triangle_nr'],
             'blue_X': points['blue_X']+points['blue_X_nr']+points['blue_square']+points['blue_square_nr'],
@@ -459,6 +603,11 @@ def MainWindow(opened=False, openedData={}):
         return new_temp_points
 
     def le_create_graph_lines():
+        """
+        Draws the connecting lines between points on the Left Ear graph.
+
+        Clears existing lines and redraws them based on sorted points.
+        """
         # t = c.find()
         c.delete('lines')
 
@@ -499,6 +648,11 @@ def MainWindow(opened=False, openedData={}):
                     pass
 
     def re_create_graph_lines():
+        """
+        Draws the connecting lines between points on the Right Ear graph.
+
+        Clears existing lines and redraws them based on sorted points.
+        """
         # t = c.find()
         c2.delete('lines')
 
@@ -530,6 +684,13 @@ def MainWindow(opened=False, openedData={}):
                     pass
 
     def le_evn(e, arg):
+        """
+        Event handler for placing symbols on the Left Ear graph.
+
+        Args:
+            e: The mouse event.
+            arg (str): The type of symbol to place (e.g., 'red_circle', 'red_triangle').
+        """
         xx = c.canvasx(e.x)
         yy = c.canvasy(e.y)
         t = c.find_withtag('le_point')
@@ -596,6 +757,13 @@ def MainWindow(opened=False, openedData={}):
 
 
     def re_evn(e, arg):
+        """
+        Event handler for placing symbols on the Right Ear graph.
+
+        Args:
+            e: The mouse event.
+            arg (str): The type of symbol to place (e.g., 'blue_X', 'blue_square').
+        """
         xx = c2.canvasx(e.x)
         yy = c2.canvasy(e.y)
         t = c2.find_withtag('re_point')
@@ -732,6 +900,16 @@ def MainWindow(opened=False, openedData={}):
 
 
     def insert_image(arg1, arg2, text):
+        """
+        Sets the application state to insert a specific symbol when clicking on the graphs.
+
+        Binds click events on both canvases to the respective event handlers.
+
+        Args:
+            arg1 (str): The symbol key for the Left Ear graph.
+            arg2 (str): The symbol key for the Right Ear graph.
+            text (str): The text of the button that was clicked (to disable it).
+        """
         c.bind('<Button-1>', lambda event, arg=arg1: le_evn(event, arg))
         c2.bind('<Button-1>', lambda event, arg=arg2: re_evn(event, arg2))
         for w in graph_button_frame.winfo_children():
@@ -746,6 +924,9 @@ def MainWindow(opened=False, openedData={}):
             
         
     def cancel_all():
+        """
+        Cancels the current insertion mode.
+        """
         c.unbind('<Button-1>')
         c2.unbind('<Button-1>')
         for w in graph_button_frame.winfo_children():
@@ -753,6 +934,12 @@ def MainWindow(opened=False, openedData={}):
         pass
 
     def le_mot(e):
+        """
+        Handles mouse motion on the Left Ear graph to snap the cursor/point to the grid.
+
+        Args:
+            e: The mouse event.
+        """
         xg = (e.x+GRID/2)//GRID
         yg = (e.y+YGRID/2)//YGRID
         t = c.find_withtag('le_point')
@@ -765,6 +952,12 @@ def MainWindow(opened=False, openedData={}):
         
 
     def re_mot(e):
+        """
+        Handles mouse motion on the Right Ear graph to snap the cursor/point to the grid.
+
+        Args:
+            e: The mouse event.
+        """
         xg = (e.x+GRID/2)//GRID
         yg = (e.y+YGRID/2)//YGRID
         t = c2.find_withtag('re_point')
@@ -783,12 +976,20 @@ def MainWindow(opened=False, openedData={}):
 
 
     def display_points():
+        """
+        Debug function to print points (Currently passes).
+        """
         # print(points)
         for a in points.values():
             # print(len(a))
             pass
 
     def bind_remove_points():
+        """
+        Sets the application state to 'Remove Points' mode.
+
+        Binds click events to the remove handlers.
+        """
         c.unbind('<Button-1>')
         c.bind('<Button-1>', le_remove_points)
         c2.unbind('<Button-1>')
@@ -800,6 +1001,11 @@ def MainWindow(opened=False, openedData={}):
                 w.config(state="normal")
 
     def create_ss():
+        """
+        Captures screenshots of the Left and Right ear graphs.
+
+        Saves them as images in the 'template' directory.
+        """
         box = (le_graph_frame.winfo_rootx(),le_graph_frame.winfo_rooty(),le_graph_frame.winfo_rootx()+le_graph_frame.winfo_width(),le_graph_frame.winfo_rooty() + le_graph_frame.winfo_height())
         box2 = (re_graph_frame.winfo_rootx(), re_graph_frame.winfo_rooty(), re_graph_frame.winfo_rootx() + re_graph_frame.winfo_width(), re_graph_frame.winfo_rooty() + re_graph_frame.winfo_height())
         # time.sleep(2)
@@ -809,6 +1015,15 @@ def MainWindow(opened=False, openedData={}):
         grab2.save('template/left_ear.png')
     
     def take_ss(repeat=True):
+        """
+        Prepares for and triggers the screenshot process.
+
+        Hides the cursor points before taking the screenshot.
+
+        Args:
+            repeat (bool, optional): Whether to repeat the screenshot process (recursive call).
+                                     Defaults to True.
+        """
         c.itemconfigure('le_point', state='hidden')
         c2.itemconfigure('re_point', state='hidden')
         # my_canvas.yview_moveto(float(0))
@@ -970,10 +1185,16 @@ def MainWindow(opened=False, openedData={}):
     right_ear.grid(row=0, column=1, columnspan=7, sticky="we")
 
     def re_default():
+        """
+        Sets the default text for the Right Ear findings.
+        """
         right_ear.insert(0, "Hearing Sensitivity with normal limits")
         pass
 
     def le_default():
+        """
+        Sets the default text for the Left Ear findings.
+        """
         left_ear.insert(0, "Hearing Sensitivity with normal limits")
         pass
 
@@ -1009,6 +1230,15 @@ def MainWindow(opened=False, openedData={}):
 
     curr_date = datetime.today().strftime('%Y-%m-%d')
     def getPta(points):
+        """
+        Calculates the Pure Tone Average (PTA) for both ears.
+
+        Args:
+            points (dict): The dictionary containing graph points.
+
+        Returns:
+            list: A list containing [Left PTA, Right PTA] as strings.
+        """
         lPtaVal = 0
         rPtaVal = 0
         if len(points['red_triangle']) != 0:
@@ -1034,6 +1264,13 @@ def MainWindow(opened=False, openedData={}):
         pass
 
     def submit_form():
+        """
+        Submits the form data to create a new case.
+
+        - Generates an HTML report.
+        - Inserts data into the SQLite database.
+        - Prints the report to PDF using Selenium.
+        """
         # take_ss()   
         with open('template/pdf.html', 'r') as f:
             html_file = f.read()
@@ -1093,6 +1330,13 @@ def MainWindow(opened=False, openedData={}):
         driver.execute_script('window.print()')
     
     def update_form():
+        """
+        Updates an existing case with current form data.
+
+        - Updates the HTML report.
+        - Updates the record in the SQLite database.
+        - Prints the report to PDF using Selenium.
+        """
         # take_ss()   
         with open('template/pdf.html', 'r') as f:
             html_file = f.read()
@@ -1191,6 +1435,13 @@ def MainWindow(opened=False, openedData={}):
         getPta(points)
         
         def le_evn_opened(arg, p):
+            """
+            Restores points for the Left Ear graph when opening a case.
+
+            Args:
+                arg (str): The symbol key.
+                p (list): The point data [x, y, ...].
+            """
             oc = (p[0], p[1])
             if (arg == 'red_unmasked_sf'):
                 le_check_y_for_same(arg, oc[0], oc[1])
@@ -1278,6 +1529,13 @@ def MainWindow(opened=False, openedData={}):
 
 
         def re_evn_opened(arg, p):
+            """
+            Restores points for the Right Ear graph when opening a case.
+
+            Args:
+                arg (str): The symbol key.
+                p (list): The point data [x, y, ...].
+            """
             oc = (p[0], p[1])
             if (arg == 'blue_unmasked_sf'):
                 le_check_y_for_same(arg, oc[0], oc[1])

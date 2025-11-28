@@ -3,17 +3,36 @@ import Graph from "./Graph";
 const YGRID = 13.5;
 const GRID = 27;
 
+/**
+ * Represents a circle (visually a square) on the canvas.
+ */
 class Circle {
   x: number;
   y: number;
+  /**
+   * Creates a new Circle instance.
+   * @param config - Configuration object.
+   * @param config.x - Initial x coordinate (default: 10).
+   * @param config.y - Initial y coordinate (default: 10).
+   */
   constructor(config: { x?: number; y?: number }) {
     this.x = config.x || 10;
     this.y = config.y || 10;
   }
+  /**
+   * Draws the circle (as a rectangle) on the given context.
+   * @param c - The canvas rendering context.
+   */
   draw(c: CanvasRenderingContext2D) {
     c.rect(this.x, this.y, 10, 10);
     c.fill();
   }
+  /**
+   * Updates the position of the circle and redraws it.
+   * @param x - New x coordinate.
+   * @param y - New y coordinate.
+   * @param ctx - The canvas rendering context.
+   */
   update(x: number, y: number, ctx: CanvasRenderingContext2D) {
     this.x = x;
     this.y = y;
@@ -35,6 +54,10 @@ let x: number = 0;
 let y: number = 0;
 
 // Do Mouse Move
+/**
+ * Handles mouse movement over the canvas.
+ * Snaps the calculated coordinates to the nearest grid intersection.
+ */
 graph.addEventListener("mousemove", function (e: MouseEvent) {
   // x = e.offsetX;
   // y = e.offsetY;
@@ -57,6 +80,10 @@ graph.addEventListener("mousemove", function (e: MouseEvent) {
 });
 
 // Init the Frame
+/**
+ * Main animation loop.
+ * Clears the graph, redraws the grid, and updates the circle position.
+ */
 function init() {
   mainGraph.clearRect();
   mainGraph.drawGraph();

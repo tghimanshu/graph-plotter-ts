@@ -1,4 +1,16 @@
+/**
+ * Represents a graph grid on a canvas.
+ */
 class Graph {
+  /**
+   * Creates a new Graph instance.
+   * @param {Object} config - The configuration object.
+   * @param {HTMLCanvasElement} config.graph - The canvas element to draw on.
+   * @param {number} [config.X=378] - The width of the graph.
+   * @param {number} [config.Y=378] - The height of the graph.
+   * @param {number} [config.GRID=27] - The grid spacing size.
+   * @param {number} [config.YGRID=13.5] - The vertical grid spacing size.
+   */
   constructor(config) {
     // Globals
     this.X = config.X || 378;
@@ -10,6 +22,10 @@ class Graph {
     this.graph = config.graph;
     this.ctx = this.graph.getContext("2d");
   }
+  /**
+   * Draws the graph grid lines on the canvas.
+   * Handles both solid and dashed lines for specific frequencies.
+   */
   drawGraph() {
     for (let i = 0; i <= this.Y + this.GRID; i += this.GRID) {
       c.moveTo(0, i);
