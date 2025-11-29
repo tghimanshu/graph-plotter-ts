@@ -1,3 +1,7 @@
+/**
+ * Main script initialization when window loads.
+ * Sets up the canvas, draws the graph, and handles animation loop.
+ */
 window.onload = function () {
   // Graph Context
   const graph = document.querySelector("#graph");
@@ -12,6 +16,9 @@ window.onload = function () {
   const GRID = 27;
   const YGRID = 13.5;
 
+  /**
+   * Draws the graph grid lines on the canvas.
+   */
   function draw_graph() {
     for (let i = 0; i <= Y + GRID; i += GRID) {
       c.moveTo(0, i);
@@ -45,15 +52,29 @@ window.onload = function () {
     }
   }
 
+  /**
+   * Represents a movable rectangle on the canvas.
+   */
   class Rect {
+    /**
+     * Creates a new Rect instance.
+     */
     constructor() {
       this.x = 0;
       this.y = 0;
     }
+    /**
+     * Draws the rectangle at its current position.
+     */
     draw() {
       c.rect(this.x, this.y, 10, 10);
       c.fill();
     }
+    /**
+     * Updates the position of the rectangle and redraws it.
+     * @param {number} x - The new x-coordinate.
+     * @param {number} y - The new y-coordinate.
+     */
     update(x, y) {
       this.x = x;
       this.y = y;
@@ -71,6 +92,10 @@ window.onload = function () {
     rectY = e.layerY;
   });
 
+  /**
+   * Animation loop.
+   * Clears the canvas, redraws the graph, and updates the rectangle position.
+   */
   function animate() {
     c.clearRect(0, 0, 378, 378);
     draw_graph();
